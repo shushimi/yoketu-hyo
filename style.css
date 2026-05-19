@@ -1,7 +1,8 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: sans-serif; background-color: #f4f4f4; color: #333; overflow: hidden; }
+/* height: 100vh の代わりに 100dvh を使い、スマホブラウザのバーを回避 */
+body { font-family: sans-serif; background-color: #f4f4f4; color: #333; overflow: hidden; height: 100dvh; }
 
-.screen { display: none; height: 100vh; flex-direction: column; }
+.screen { display: none; height: 100dvh; flex-direction: column; }
 .screen.active { display: flex; }
 
 /* メニュー画面 */
@@ -11,25 +12,32 @@ h1 { font-size: 24px; margin-bottom: 10px; }
 .menu-buttons button { padding: 15px; font-size: 16px; border: none; border-radius: 8px; background: #007bff; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
 /* ゲーム画面 */
-#info-bar { background: #333; color: white; padding: 10px; display: flex; align-items: center; font-size: 16px; font-weight: bold; height: 50px; z-index: 10; }
+#info-bar { background: #333; color: white; padding: 10px; display: flex; align-items: center; font-size: 16px; font-weight: bold; height: 50px; flex-shrink: 0; z-index: 10; }
 #back-btn { background: #555; color: white; border: none; padding: 5px 10px; border-radius: 4px; margin-right: 15px; }
 
-#table-container { flex: 1; overflow: auto; padding: 20px; background: white; touch-action: pan-x pan-y pinch-zoom; }
-table { border-collapse: collapse; min-width: 600px; margin: auto; }
-th, td { border: 1px solid #999; padding: 10px; text-align: center; min-width: 60px; height: 40px; font-size: 16px; }
+/* テーブルコンテナ */
+#table-container { flex: 1; overflow: auto; padding: 10px; background: white; touch-action: pan-x pan-y pinch-zoom; display: flex; flex-direction: column; align-items: center; }
+
+/* 表のレスポンシブ化（画面幅に収める） */
+table { border-collapse: collapse; width: 100%; max-width: 800px; table-layout: fixed; margin: auto; }
+/* 画面サイズに合わせて文字を少し小さくし、折り返しを防ぐ */
+th, td { border: 1px solid #999; padding: 5px 2px; text-align: center; height: 45px; font-size: clamp(11px, 3.5vw, 16px); word-break: keep-all; }
 th { background: #eee; }
+th:first-child { width: 16%; } /* 左端の列幅を少し調整 */
+
 td.empty-cell { background: #fffde7; cursor: pointer; transition: background 0.3s; }
 td.empty-cell.active-target { background: #ffeb3b; border: 3px solid #f44336; }
 td.correct { color: black; font-weight: bold; background: white; pointer-events: none;}
 td.wrong { color: red; font-weight: bold; background: white; pointer-events: none;}
 td.null-cell { background: #ddd; pointer-events: none; }
 
-/* 下部クイズUI */
-#quiz-container { background: #fff; border-top: 2px solid #ccc; padding: 10px; height: 160px; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+/* 下部クイズUI（高さ固定を解除し、内容に合わせる） */
+#quiz-container { background: #fff; border-top: 2px solid #ccc; padding: 15px 10px 25px 10px; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
 #quiz-container.hidden { display: none; }
-.choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 100%; }
-.choice-btn { background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; font-size: 18px; color: #0d47a1; font-weight: bold; }
+.choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* ボタンの余白と高さを確保 */
+.choice-btn { background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; font-size: 16px; color: #0d47a1; font-weight: bold; padding: 15px 5px; min-height: 60px; word-break: keep-all;}
 .choice-btn:active { background: #bbdefb; }
 
-#complete-message { background: #4caf50; color: white; text-align: center; padding: 15px; font-size: 18px; font-weight: bold; z-index: 10;}
+#complete-message { background: #4caf50; color: white; text-align: center; padding: 15px; font-size: 18px; font-weight: bold; z-index: 10; flex-shrink: 0; }
 #complete-message.hidden { display: none; }
