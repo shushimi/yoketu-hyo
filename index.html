@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>経穴学習アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- フェーズ1：ジャンル選択画面 -->
+    <div id="menu-screen" class="screen active">
+        <h1>経穴学習アプリ</h1>
+        <p>学習するジャンルを選択してください</p>
+        <div class="menu-buttons">
+            <button onclick="startGame(1)">1. 五兪穴・五行穴 陰経</button>
+            <button onclick="startGame(2)">2. 五兪穴・五行穴 陽経</button>
+            <button onclick="startGame(3)">3. 五要穴 陰経</button>
+            <button onclick="startGame(4)">4. 五要穴 陽経+奇経</button>
+        </div>
+    </div>
+
+    <!-- フェーズ2：学習画面 -->
+    <div id="game-screen" class="screen">
+        <!-- 上部：現在位置の表示 -->
+        <div id="info-bar">
+            <button id="back-btn" onclick="returnToMenu()">戻る</button>
+            <span id="current-target-info">表の空欄をタップして開始</span>
+        </div>
+
+        <!-- 中央：表（ズームイン・アウト可能） -->
+        <div id="table-container">
+            <table id="point-table">
+                <!-- JavaScriptでテーブルを生成 -->
+            </table>
+        </div>
+
+        <!-- 下部：4択ボタン -->
+        <div id="quiz-container" class="hidden">
+            <div class="choices-grid">
+                <button class="choice-btn" onclick="checkAnswer(0)"></button>
+                <button class="choice-btn" onclick="checkAnswer(1)"></button>
+                <button class="choice-btn" onclick="checkAnswer(2)"></button>
+                <button class="choice-btn" onclick="checkAnswer(3)"></button>
+            </div>
+        </div>
+
+        <!-- 完了メッセージ -->
+        <div id="complete-message" class="hidden">
+            学習完了！自由に表を確認できます。
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
