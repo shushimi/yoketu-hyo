@@ -1,9 +1,9 @@
 let currentCategoryData = null;
-let emptyCellsSequence = []; // 回答すべきセルの順番リスト
-let currentTargetIndex = -1; // 現在回答中のセルのインデックス
+let emptyCellsSequence = []; 
+let currentTargetIndex = -1; 
 let currentCorrectAnswer = "";
+let isProcessing = false; // ★連打防止用のフラグを追加
 
-// 画面切り替え
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
@@ -13,38 +13,35 @@ function returnToMenu() {
     showScreen('menu-screen');
 }
 
-// ゲーム開始：テーブルの構築
 function startGame(categoryId) {
     currentCategoryData = tableData[categoryId];
     emptyCellsSequence = [];
     currentTargetIndex = 0;
+    isProcessing = false;
     
     const table = document.getElementById('point-table');
     table.innerHTML = "";
 
-    // ヘッダー作成
     let thead = "<tr>";
     currentCategoryData.headers.forEach(h => thead += `<th>${h}</th>`);
     thead += "</tr>";
     table.innerHTML += thead;
 
-    // 行とセル作成
     currentCategoryData.rows.forEach((row, rIdx) => {
         let tr = document.createElement('tr');
-        tr.innerHTML = `<th>${row.name}</th>`; // 経脈名
+        tr.innerHTML = `<th>${row.name}</th>`;
         
         row.data.forEach((ans, cIdx) => {
             let td = document.createElement('td');
             td.id = `cell-${rIdx}-${cIdx}`;
             
             if (ans === null) {
-                td.classList.add('null-cell'); // 入力不可マス
+                td.classList.add('null-cell'); 
             } else {
                 td.classList.add('empty-cell');
                 td.dataset.answer = ans;
                 td.dataset.rowName = row.name;
                 td.dataset.colName = currentCategoryData.headers[cIdx + 1];
-                // タップされたらそのマスをアクティブにする
                 td.addEventListener('click', () => activateCell(rIdx, cIdx));
                 emptyCellsSequence.push({ rIdx, cIdx, element: td });
             }
@@ -60,36 +57,32 @@ function startGame(categoryId) {
     showScreen('game-screen');
 }
 
-// 特定のセルをアクティブにする
 function activateCell(rIdx, cIdx) {
-    // 既存のアクティブ解除
+    if (isProcessing) return; // 処理中は別のセルをタップできないようにする
+
     document.querySelectorAll('.empty-cell').forEach(el => el.classList.remove('active-target'));
     
-    // 対象セルを検索
     const targetIdx = emptyCellsSequence.findIndex(item => item.rIdx === rIdx && item.cIdx === cIdx);
-    if (targetIdx === -1) return; // すでに回答済み
+    if (targetIdx === -1) return; 
     
     currentTargetIndex = targetIdx;
     const target = emptyCellsSequence[currentTargetIndex];
     target.element.classList.add('active-target');
     
-    // 情報バー更新
     document.getElementById('current-target-info').textContent = `${target.element.dataset.rowName} - ${target.element.dataset.colName}`;
     currentCorrectAnswer = target.element.dataset.answer;
 
-    // ズーム＆スクロール調整 (選択部分を画面中央へ)
     target.element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
 
     generateQuiz();
 }
 
-// 4択問題の生成
 function generateQuiz() {
     document.getElementById('quiz-container').classList.remove('hidden');
     
-    // 正解以外の選択肢をランダムに3つ選ぶ
+    // ★正解以外の選択肢を5つ選ぶ (6択用)
     let wrongChoices = allAcupoints.filter(pt => pt !== currentCorrectAnswer);
-    wrongChoices = wrongChoices.sort(() => 0.5 - Math.random()).slice(0, 3);
+    wrongChoices = wrongChoices.sort(() => 0.5 - Math.random()).slice(0, 5);
     
     let choices = [currentCorrectAnswer, ...wrongChoices];
     choices = choices.sort(() => 0.5 - Math.random()); // シャッフル
@@ -97,39 +90,44 @@ function generateQuiz() {
     const buttons = document.querySelectorAll('.choice-btn');
     buttons.forEach((btn, idx) => {
         btn.textContent = choices[idx];
+        btn.disabled = false; // ★ボタンを再び押せるようにする
     });
+
+    isProcessing = false; // 入力受付開始
 }
 
-// 回答のチェック
 function checkAnswer(btnIndex) {
-    const selectedAnswer = document.querySelectorAll('.choice-btn')[btnIndex].textContent;
+    if (isProcessing) return; // ★連打防止：処理中なら弾く
+    isProcessing = true; // ★処理中フラグを立てる
+
+    const buttons = document.querySelectorAll('.choice-btn');
+    buttons.forEach(btn => btn.disabled = true); // ★画面上のボタンを全て無効化
+
+    const selectedAnswer = buttons[btnIndex].textContent;
     const target = emptyCellsSequence[currentTargetIndex];
     const td = target.element;
 
-    td.textContent = currentCorrectAnswer; // セルに文字を埋める
+    td.textContent = currentCorrectAnswer; 
     td.classList.remove('empty-cell', 'active-target');
 
     if (selectedAnswer === currentCorrectAnswer) {
-        td.classList.add('correct'); // 黒字
+        td.classList.add('correct'); 
     } else {
-        td.classList.add('wrong'); // 赤字
+        td.classList.add('wrong'); 
     }
 
-    // 回答済みリストから削除
     emptyCellsSequence.splice(currentTargetIndex, 1);
 
-    // 次の空欄へ自動移動（末尾まで行ったら自動で次の段へ）
     if (emptyCellsSequence.length > 0) {
-        // currentTargetIndex は配列が縮んだのでそのままのindexで次のセルになる
         if (currentTargetIndex >= emptyCellsSequence.length) {
-            currentTargetIndex = 0; // 最後尾を回答した場合は最初に戻る
+            currentTargetIndex = 0; 
         }
         const nextTarget = emptyCellsSequence[currentTargetIndex];
         setTimeout(() => activateCell(nextTarget.rIdx, nextTarget.cIdx), 300);
     } else {
-        // 全て完了
         document.getElementById('quiz-container').classList.add('hidden');
         document.getElementById('complete-message').classList.remove('hidden');
         document.getElementById('current-target-info').textContent = "コンプリート！";
+        isProcessing = false;
     }
 }
