@@ -6,8 +6,8 @@ body { font-family: sans-serif; background-color: #f4f4f4; color: #333; overflow
 
 #menu-screen { align-items: center; justify-content: center; padding: 20px; }
 h1 { font-size: 24px; margin-bottom: 10px; }
-.menu-buttons { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 300px; margin-top: 20px;}
-.menu-buttons button { padding: 15px; font-size: 16px; border: none; border-radius: 8px; background: #007bff; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.menu-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; margin-top: 10px; overflow-y: auto; max-height: 80vh;}
+.menu-buttons button { padding: 12px; font-size: 16px; border: none; border-radius: 8px; background: #007bff; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
 #info-bar { background: #333; color: white; padding: 10px; display: flex; align-items: center; font-size: 16px; font-weight: bold; height: 50px; flex-shrink: 0; z-index: 10; }
 #back-btn { background: #555; color: white; border: none; padding: 5px 10px; border-radius: 4px; margin-right: 15px; }
@@ -15,23 +15,29 @@ h1 { font-size: 24px; margin-bottom: 10px; }
 #table-container { flex: 1; overflow: auto; padding: 10px; background: white; touch-action: pan-x pan-y pinch-zoom; display: flex; flex-direction: column; align-items: center; }
 
 table { border-collapse: collapse; width: 100%; max-width: 800px; table-layout: fixed; margin: auto; }
-th, td { border: 1px solid #999; padding: 5px 2px; text-align: center; height: 45px; font-size: clamp(11px, 3.5vw, 16px); word-break: keep-all; }
+th, td { border: 1px solid #999; padding: 5px 2px; text-align: center; vertical-align: middle; font-size: clamp(11px, 3vw, 16px); word-break: keep-all; }
 th { background: #eee; }
-th:first-child { width: 16%; }
+th:first-child { width: 18%; } /* 高さ用の列幅 */
 
-td.empty-cell { background: #fffde7; cursor: pointer; transition: background 0.3s; }
-td.empty-cell.active-target { background: #ffeb3b; border: 3px solid #f44336; }
-td.correct { color: black; font-weight: bold; background: white; pointer-events: none;}
-td.wrong { color: red; font-weight: bold; background: white; pointer-events: none;}
+/* 斜線が引かれたマス */
+td.slash-cell { background: linear-gradient(to top right, transparent 49%, #ccc 49%, #ccc 51%, transparent 51%); }
 td.null-cell { background: #ddd; pointer-events: none; }
+
+/* 1マスの中に解答枠を作るためのスタイル */
+.target-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 4px; }
+.target-container:last-child { margin-bottom: 0; }
+.sub-note { font-size: 10px; color: #666; margin-bottom: 2px; line-height: 1.1;}
+
+.empty-target { background: #fffde7; border: 1px dashed #bbb; border-radius: 4px; width: 90%; min-height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; margin: auto; }
+.empty-target.active-target { background: #ffeb3b; border: 3px solid #f44336; }
+.empty-target.correct { border: none; background: transparent; color: black; font-weight: bold; pointer-events: none; }
+.empty-target.wrong { border: none; background: transparent; color: red; font-weight: bold; pointer-events: none; }
 
 #quiz-container { background: #fff; border-top: 2px solid #ccc; padding: 10px; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
 #quiz-container.hidden { display: none; }
-/* 隙間を少し狭くし、6個のボタンを配置 */
 .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .choice-btn { background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; font-size: 16px; color: #0d47a1; font-weight: bold; padding: 10px 5px; min-height: 48px; word-break: keep-all;}
 .choice-btn:active { background: #bbdefb; }
-/* 連打防止用のスタイル */
 .choice-btn:disabled { opacity: 0.7; pointer-events: none; }
 
 #complete-message { background: #4caf50; color: white; text-align: center; padding: 15px; font-size: 18px; font-weight: bold; z-index: 10; flex-shrink: 0; }
