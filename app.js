@@ -2,7 +2,7 @@ let currentCategoryData = null;
 let emptyCellsSequence = []; 
 let currentTargetIndex = -1; 
 let currentCorrectAnswer = "";
-let isProcessing = false; // ★連打防止用のフラグを追加
+let isProcessing = false; // 連打防止用のフラグ
 
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -80,7 +80,7 @@ function activateCell(rIdx, cIdx) {
 function generateQuiz() {
     document.getElementById('quiz-container').classList.remove('hidden');
     
-    // ★正解以外の選択肢を5つ選ぶ (6択用)
+    // 正解以外の選択肢を5つ選ぶ (6択用)
     let wrongChoices = allAcupoints.filter(pt => pt !== currentCorrectAnswer);
     wrongChoices = wrongChoices.sort(() => 0.5 - Math.random()).slice(0, 5);
     
@@ -90,18 +90,16 @@ function generateQuiz() {
     const buttons = document.querySelectorAll('.choice-btn');
     buttons.forEach((btn, idx) => {
         btn.textContent = choices[idx];
-        btn.disabled = false; // ★ボタンを再び押せるようにする
+        btn.disabled = false; // ボタンを再び押せるようにする
     });
-
-    isProcessing = false; // 入力受付開始
 }
 
 function checkAnswer(btnIndex) {
-    if (isProcessing) return; // ★連打防止：処理中なら弾く
-    isProcessing = true; // ★処理中フラグを立てる
+    if (isProcessing) return; // 連打防止：処理中なら弾く
+    isProcessing = true; // ★ここでロックをかける
 
     const buttons = document.querySelectorAll('.choice-btn');
-    buttons.forEach(btn => btn.disabled = true); // ★画面上のボタンを全て無効化
+    buttons.forEach(btn => btn.disabled = true); // 画面上のボタンを全て無効化
 
     const selectedAnswer = buttons[btnIndex].textContent;
     const target = emptyCellsSequence[currentTargetIndex];
@@ -123,7 +121,10 @@ function checkAnswer(btnIndex) {
             currentTargetIndex = 0; 
         }
         const nextTarget = emptyCellsSequence[currentTargetIndex];
-        setTimeout(() => activateCell(nextTarget.rIdx, nextTarget.cIdx), 300);
+        setTimeout(() => {
+            isProcessing = false; // ★ここでロックを解除してから次のセルへ進む
+            activateCell(nextTarget.rIdx, nextTarget.cIdx);
+        }, 300);
     } else {
         document.getElementById('quiz-container').classList.add('hidden');
         document.getElementById('complete-message').classList.remove('hidden');
