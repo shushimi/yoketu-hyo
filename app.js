@@ -2,7 +2,7 @@ let currentCategoryData = null;
 let emptyCellsSequence = []; 
 let currentTargetIndex = -1; 
 let currentCorrectAnswer = "";
-let isInputLocked = false; // ★連打・誤作動防止の厳格なロック
+let isInputLocked = false; 
 
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -33,38 +33,74 @@ function startGame(categoryId) {
         
         row.data.forEach((ans, cIdx) => {
             let td = document.createElement('td');
-            td.id = `cell-${rIdx}-${cIdx}`;
             
             if (ans === null) {
                 td.classList.add('null-cell'); 
+            } else if (ans === "-") {
+                td.classList.add('slash-cell'); 
             } else {
-                td.classList.add('empty-cell');
-                td.dataset.answer = ans;
-                td.dataset.rowName = row.name;
-                td.dataset.colName = currentCategoryData.headers[cIdx + 1];
-                // 手動タップ時の処理
-                td.addEventListener('click', () => {
-                    if (!isInputLocked) activateCell(rIdx, cIdx);
+                let items = Array.isArray(ans) ? ans : [ans];
+                
+                items.forEach((item, subIdx) => {
+                    let container = document.createElement('div');
+                    container.className = 'target-container';
+
+                    let answerText = typeof item === 'object' ? item.name : item;
+                    let displayText = typeof item === 'object' && item.display ? item.display : answerText;
+                    let subText = typeof item === 'object' && item.sub ? item.sub : "";
+
+                    if (subText) {
+                        let note = document.createElement('div');
+                        note.className = 'sub-note';
+                        note.textContent = subText;
+                        container.appendChild(note);
+                    }
+
+                    let targetDiv = document.createElement('div');
+                    targetDiv.className = 'empty-target';
+                    targetDiv.dataset.answer = answerText;
+                    targetDiv.dataset.display = displayText;
+                    targetDiv.dataset.rowName = row.name;
+                    targetDiv.dataset.colName = currentCategoryData.headers[cIdx + 1];
+                    
+                    targetDiv.addEventListener('click', () => {
+                        if (!isInputLocked) activateCell(rIdx, cIdx, subIdx);
+                    });
+                    
+                    container.appendChild(targetDiv);
+                    td.appendChild(container);
+                    
+                    emptyCellsSequence.push({ rIdx, cIdx, subIdx, element: targetDiv });
                 });
-                emptyCellsSequence.push({ rIdx, cIdx, element: td });
             }
             tr.appendChild(td);
         });
         table.appendChild(tr);
     });
 
+    if (currentCategoryData.direction === "vertical") {
+        emptyCellsSequence.sort((a, b) => {
+            if (a.cIdx !== b.cIdx) return a.cIdx - b.cIdx; 
+            if (a.rIdx !== b.rIdx) return a.rIdx - b.rIdx; 
+            return a.subIdx - b.subIdx; 
+        });
+    }
+
     document.getElementById('quiz-container').classList.add('hidden');
     document.getElementById('complete-message').classList.add('hidden');
     document.getElementById('current-target-info').textContent = "表の空欄をタップして開始";
     
     showScreen('game-screen');
+    
+    if(emptyCellsSequence.length > 0) {
+        setTimeout(() => activateCell(emptyCellsSequence[0].rIdx, emptyCellsSequence[0].cIdx, emptyCellsSequence[0].subIdx), 500);
+    }
 }
 
-// ユーザーが手動でマスをタップした時の処理
-function activateCell(rIdx, cIdx) {
-    document.querySelectorAll('.empty-cell').forEach(el => el.classList.remove('active-target'));
+function activateCell(rIdx, cIdx, subIdx) {
+    document.querySelectorAll('.empty-target').forEach(el => el.classList.remove('active-target'));
     
-    const targetIdx = emptyCellsSequence.findIndex(item => item.rIdx === rIdx && item.cIdx === cIdx);
+    const targetIdx = emptyCellsSequence.findIndex(item => item.rIdx === rIdx && item.cIdx === cIdx && item.subIdx === subIdx);
     if (targetIdx === -1) return; 
     
     currentTargetIndex = targetIdx;
@@ -82,42 +118,40 @@ function activateCell(rIdx, cIdx) {
 function generateQuiz() {
     document.getElementById('quiz-container').classList.remove('hidden');
     
-    // 正解以外の選択肢を5つ選ぶ (6択用)
     let wrongChoices = allAcupoints.filter(pt => pt !== currentCorrectAnswer);
     wrongChoices = wrongChoices.sort(() => 0.5 - Math.random()).slice(0, 5);
     
     let choices = [currentCorrectAnswer, ...wrongChoices];
-    choices = choices.sort(() => 0.5 - Math.random()); // シャッフル
+    choices = choices.sort(() => 0.5 - Math.random()); 
 
     const buttons = document.querySelectorAll('.choice-btn');
     buttons.forEach((btn, idx) => {
         btn.textContent = choices[idx];
-        btn.disabled = false; // ボタンを押せる状態に戻す
+        btn.disabled = false; 
     });
 }
 
-// 回答ボタンが押された時の処理
 function checkAnswer(btnIndex) {
-    if (isInputLocked) return; // ★連打されたら完全に弾く
-    isInputLocked = true; // ★ロックをかける
+    if (isInputLocked) return; 
+    isInputLocked = true; 
 
     const buttons = document.querySelectorAll('.choice-btn');
-    buttons.forEach(btn => btn.disabled = true); // ★画面上のボタンも押せなくする
+    buttons.forEach(btn => btn.disabled = true); 
 
     const selectedAnswer = buttons[btnIndex].textContent;
     const target = emptyCellsSequence[currentTargetIndex];
-    const td = target.element;
+    const el = target.element;
 
-    td.textContent = currentCorrectAnswer; 
-    td.classList.remove('empty-cell', 'active-target');
+    // ★HTMLタグ（改行や文字サイズ指定）をそのまま反映させるように変更
+    el.innerHTML = el.dataset.display; 
+    el.classList.remove('active-target');
 
     if (selectedAnswer === currentCorrectAnswer) {
-        td.classList.add('correct'); 
+        el.classList.add('correct'); 
     } else {
-        td.classList.add('wrong'); 
+        el.classList.add('wrong'); 
     }
 
-    // 回答済みのマスをリストから消す
     emptyCellsSequence.splice(currentTargetIndex, 1);
 
     if (emptyCellsSequence.length > 0) {
@@ -126,9 +160,8 @@ function checkAnswer(btnIndex) {
         }
         const nextTarget = emptyCellsSequence[currentTargetIndex];
         
-        // 0.3秒後に自動で次のマスへ移動
         setTimeout(() => {
-            moveToNextTarget(nextTarget.rIdx, nextTarget.cIdx);
+            moveToNextTarget(nextTarget.rIdx, nextTarget.cIdx, nextTarget.subIdx);
         }, 300);
     } else {
         document.getElementById('quiz-container').classList.add('hidden');
@@ -138,11 +171,10 @@ function checkAnswer(btnIndex) {
     }
 }
 
-// プログラムが自動で次のマスへ進むための専用処理
-function moveToNextTarget(rIdx, cIdx) {
-    document.querySelectorAll('.empty-cell').forEach(el => el.classList.remove('active-target'));
+function moveToNextTarget(rIdx, cIdx, subIdx) {
+    document.querySelectorAll('.empty-target').forEach(el => el.classList.remove('active-target'));
     
-    const targetIdx = emptyCellsSequence.findIndex(item => item.rIdx === rIdx && item.cIdx === cIdx);
+    const targetIdx = emptyCellsSequence.findIndex(item => item.rIdx === rIdx && item.cIdx === cIdx && item.subIdx === subIdx);
     
     if (targetIdx !== -1) {
         currentTargetIndex = targetIdx;
@@ -157,5 +189,5 @@ function moveToNextTarget(rIdx, cIdx) {
         generateQuiz();
     }
     
-    isInputLocked = false; // ★無事に移動が終わったらロックを解除して次の入力を待つ
+    isInputLocked = false; 
 }
