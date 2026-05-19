@@ -2,7 +2,7 @@ let currentCategoryData = null;
 let emptyCellsSequence = []; 
 let currentTargetIndex = -1; 
 let currentCorrectAnswer = "";
-let isProcessing = false; // 連打防止用のフラグ
+let isInputLocked = false; // ★連打・誤作動防止の厳格なロック
 
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -17,7 +17,7 @@ function startGame(categoryId) {
     currentCategoryData = tableData[categoryId];
     emptyCellsSequence = [];
     currentTargetIndex = 0;
-    isProcessing = false;
+    isInputLocked = false;
     
     const table = document.getElementById('point-table');
     table.innerHTML = "";
@@ -42,7 +42,10 @@ function startGame(categoryId) {
                 td.dataset.answer = ans;
                 td.dataset.rowName = row.name;
                 td.dataset.colName = currentCategoryData.headers[cIdx + 1];
-                td.addEventListener('click', () => activateCell(rIdx, cIdx));
+                // 手動タップ時の処理
+                td.addEventListener('click', () => {
+                    if (!isInputLocked) activateCell(rIdx, cIdx);
+                });
                 emptyCellsSequence.push({ rIdx, cIdx, element: td });
             }
             tr.appendChild(td);
@@ -57,9 +60,8 @@ function startGame(categoryId) {
     showScreen('game-screen');
 }
 
+// ユーザーが手動でマスをタップした時の処理
 function activateCell(rIdx, cIdx) {
-    if (isProcessing) return; // 処理中は別のセルをタップできないようにする
-
     document.querySelectorAll('.empty-cell').forEach(el => el.classList.remove('active-target'));
     
     const targetIdx = emptyCellsSequence.findIndex(item => item.rIdx === rIdx && item.cIdx === cIdx);
@@ -90,16 +92,17 @@ function generateQuiz() {
     const buttons = document.querySelectorAll('.choice-btn');
     buttons.forEach((btn, idx) => {
         btn.textContent = choices[idx];
-        btn.disabled = false; // ボタンを再び押せるようにする
+        btn.disabled = false; // ボタンを押せる状態に戻す
     });
 }
 
+// 回答ボタンが押された時の処理
 function checkAnswer(btnIndex) {
-    if (isProcessing) return; // 連打防止：処理中なら弾く
-    isProcessing = true; // ★ここでロックをかける
+    if (isInputLocked) return; // ★連打されたら完全に弾く
+    isInputLocked = true; // ★ロックをかける
 
     const buttons = document.querySelectorAll('.choice-btn');
-    buttons.forEach(btn => btn.disabled = true); // 画面上のボタンを全て無効化
+    buttons.forEach(btn => btn.disabled = true); // ★画面上のボタンも押せなくする
 
     const selectedAnswer = buttons[btnIndex].textContent;
     const target = emptyCellsSequence[currentTargetIndex];
@@ -114,6 +117,7 @@ function checkAnswer(btnIndex) {
         td.classList.add('wrong'); 
     }
 
+    // 回答済みのマスをリストから消す
     emptyCellsSequence.splice(currentTargetIndex, 1);
 
     if (emptyCellsSequence.length > 0) {
@@ -121,14 +125,37 @@ function checkAnswer(btnIndex) {
             currentTargetIndex = 0; 
         }
         const nextTarget = emptyCellsSequence[currentTargetIndex];
+        
+        // 0.3秒後に自動で次のマスへ移動
         setTimeout(() => {
-            isProcessing = false; // ★ここでロックを解除してから次のセルへ進む
-            activateCell(nextTarget.rIdx, nextTarget.cIdx);
+            moveToNextTarget(nextTarget.rIdx, nextTarget.cIdx);
         }, 300);
     } else {
         document.getElementById('quiz-container').classList.add('hidden');
         document.getElementById('complete-message').classList.remove('hidden');
         document.getElementById('current-target-info').textContent = "コンプリート！";
-        isProcessing = false;
+        isInputLocked = false;
     }
+}
+
+// プログラムが自動で次のマスへ進むための専用処理
+function moveToNextTarget(rIdx, cIdx) {
+    document.querySelectorAll('.empty-cell').forEach(el => el.classList.remove('active-target'));
+    
+    const targetIdx = emptyCellsSequence.findIndex(item => item.rIdx === rIdx && item.cIdx === cIdx);
+    
+    if (targetIdx !== -1) {
+        currentTargetIndex = targetIdx;
+        const target = emptyCellsSequence[currentTargetIndex];
+        target.element.classList.add('active-target');
+        
+        document.getElementById('current-target-info').textContent = `${target.element.dataset.rowName} - ${target.element.dataset.colName}`;
+        currentCorrectAnswer = target.element.dataset.answer;
+
+        target.element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        
+        generateQuiz();
+    }
+    
+    isInputLocked = false; // ★無事に移動が終わったらロックを解除して次の入力を待つ
 }
