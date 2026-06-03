@@ -53,6 +53,12 @@ function startGame(categoryId) {
                         let note = document.createElement('div');
                         note.className = 'sub-note';
                         note.textContent = subText;
+                        
+                        // ★データに hideSub が設定されている表の場合、解答前は見えないようにする
+                        if (currentCategoryData.hideSub) {
+                            note.style.visibility = 'hidden'; 
+                        }
+                        
                         container.appendChild(note);
                     }
 
@@ -142,12 +148,19 @@ function checkAnswer(btnIndex) {
     const target = emptyCellsSequence[currentTargetIndex];
     const el = target.element;
 
-    // ★HTMLタグ（改行や文字サイズ指定）をそのまま反映させるように変更
     el.innerHTML = el.dataset.display; 
     el.classList.remove('active-target');
 
     if (selectedAnswer === currentCorrectAnswer) {
         el.classList.add('correct'); 
+        
+        // ★正解したら、そのセルの添え文字（サブノート）を表示させる
+        const container = el.parentElement;
+        const note = container.querySelector('.sub-note');
+        if (note) {
+            note.style.visibility = 'visible';
+        }
+
     } else {
         el.classList.add('wrong'); 
     }
