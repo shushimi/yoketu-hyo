@@ -1,5 +1,5 @@
 // ダミー生成用のリスト（脈診と主病証を分けて管理）
-const allMyaku = ["浮脈","沈脈","遅脈","数脈","虚脈","実脈","伏脈","疾脈","滑脈","渋脈","短脈","長脈","弦脈","緊脈","細脈","微脈","洪脈","結脈","代脈","促脈","緩脈","芤脈","革脈","濡脈","弱脈","散脈","動脈","牢脈"];
+const allMyaku = ["浮脈","沈脈","遅脈","数脈","虚脈","実脈","伏脈","疾脈","滑脈","濇脈","短脈","長脈","弦脈","緊脈","細脈","微脈","洪脈","結脈","代脈","促脈","緩脈","芤脈","革脈","濡脈","弱脈","散脈","動脈","牢脈"];
 
 const allByou = ["表証","虚証","裏証","寒証","熱証","実証","陽衰","激痛","熱盛","陽極","痰湿","食滞","血瘀","気鬱","気虚","陽気有余","肝胆病","痛証","痰飲","実寒","血虚","積聚","臓気の衰退","気滞","湿証","脾虚","失血","傷陰","精血虚損","気血両虚","元気離散","驚証","陰寒内実","疝痛"];
 
@@ -14,7 +14,7 @@ const tableData = [
   { myaku: ["伏脈"], content: "骨につくほど重按して触れるもの", byou: ["寒証", "陽衰", "激痛"], emptyMyaku: true, emptyByou: true },
   { myaku: ["疾脈"], content: "1呼吸に7，8拍以上のもの", byou: ["熱盛", "陽極"], emptyMyaku: true, emptyByou: true },
   { myaku: ["滑脈"], content: "円滑に指に触れるもの", byou: ["痰湿", "食滞"], emptyMyaku: true, emptyByou: true },
-  { myaku: ["渋脈"], content: "ざらざらとして渋滞したようなもの", byou: ["血瘀"], emptyMyaku: true, emptyByou: true },
+  { myaku: ["濇脈"], content: "ざらざらとして渋滞したようなもの", byou: ["血瘀"], emptyMyaku: true, emptyByou: true },
   { myaku: ["短脈"], content: "脈の長さが、寸・関・尺に満たないもの", byou: ["気鬱", "気虚"], emptyMyaku: true, emptyByou: true },
   { myaku: ["長脈"], content: "脈の長さが、寸・関・尺を超えるもの", byou: ["陽気有余"], emptyMyaku: true, emptyByou: true },
   { myaku: ["弦脈"], content: "長く真っすぐで緊張したもの", byou: ["肝胆病", "痛証", "痰飲"], emptyMyaku: true, emptyByou: true },
